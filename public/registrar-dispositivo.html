@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Dispositivo Móvil - Control Access</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-movil {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-registrar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            padding: 12px 30px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-registrar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-registrar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .spinner-border-sm {
+            width: 16px;
+            height: 16px;
+        }
+
+        .tabs-registro {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #999;
+            font-weight: 600;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .icono-dispositivo {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .badge-metodo {
+            display: inline-block;
+            background: #f0f0f0;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-movil">
+        <!-- Header -->
+        <div class="header">
+            <div class="icono-dispositivo">
+                <i class="bi bi-smartphone"></i>
+            </div>
+            <h1>Registrar Dispositivo</h1>
+            <p>Autoriza tu teléfono para acceder al sistema</p>
+        </div>
+
+        <!-- Mensaje de Éxito -->
+        <div class="success-message" id="successMessage">
+            <i class="bi bi-check-circle"></i> ¡Dispositivo registrado correctamente!
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-registro">
+            <button class="tab-btn active" data-tab="manual">
+                <i class="bi bi-pencil-square"></i> Manual
+            </button>
+            <button class="tab-btn" data-tab="codigo">
+                <i class="bi bi-qr-code"></i> Código
+            </button>
+        </div>
+
+        <!-- Tab: Registro Manual -->
+        <div class="tab-content active" id="tab-manual">
+            <form id="formRegistroManual">
+                <!-- Usuario -->
+                <div class="form-section">
+                    <label for="usuarioId">
+                        <i class="bi bi-person"></i> Usuario
+                    </label>
+                    <select id="usuarioId" class="form-select" required>
+                        <option value="">-- Selecciona tu usuario --</option>
+                    </select>
+                </div>
+
+                <!-- Credencial -->
+                <div class="form-section">
+                    <label for="credencialUid">
+                        <i class="bi bi-credit-card"></i> Tarjeta NFC
+                    </label>
+                    <select id="credencialUid" class="form-select" required>
+                        <option value="">-- Selecciona tu tarjeta --</option>
+                    </select>
+                </div>
+
+                <!-- Nombre Dispositivo -->
+                <div class="form-section">
+                    <label for="nombreDispositivo">
+                        <i class="bi bi-label"></i> Nombre del Dispositivo
+                    </label>
+                    <input type="text" id="nombreDispositivo" class="form-control" 
+                           placeholder="Ej: Mi Xiaomi, iPhone de Juan..." required>
+                </div>
+
+                <!-- Tipo Dispositivo -->
+                <div class="form-section">
+                    <label for="tipoDispositivo">
+                        <i class="bi bi-cpu"></i> Tipo de Dispositivo
+                    </label>
+                    <select id="tipoDispositivo" class="form-select" required>
+                        <option value="">-- Selecciona --</option>
+                        <option value="android">Android</option>
+                        <option value="ios">iOS</option>
+                        <option value="web">Web Browser</option>
+                    </select>
+                </div>
+
+                <!-- Versión SO -->
+                <div class="form-section">
+                    <label for="soVersion">
+                        <i class="bi bi-gear"></i> Versión del Sistema
+                    </label>
+                    <input type="text" id="soVersion" class="form-control" 
+                           placeholder="Ej: Android 13, iOS 17..." readonly>
+                    <small class="text-muted">Se detecta automáticamente</small>
+                </div>
+
+                <!-- ¿Tiene NFC? -->
+                <div class="form-section">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="tieneNfc">
+                        <label class="form-check-label" for="tieneNfc">
+                            <i class="bi bi-wifi"></i> Este dispositivo tiene NFC
+                        </label>
+                    </div>
+                    <small class="text-muted d-block mt-2">Permite emular la tarjeta de forma inalámbrica</small>
+                </div>
+
+                <!-- Método de Autenticación -->
+                <div class="form-section">
+                    <label for="metodoAutenticacion">
+                        <i class="bi bi-shield-lock"></i> Método de Autenticación
+                    </label>
+                    <select id="metodoAutenticacion" class="form-select" required>
+                        <option value="">-- Selecciona --</option>
+                        <option value="biometrico">Huella / Cara</option>
+                        <option value="pin">PIN de 5 dígitos</option>
+                        <option value="nfc_emulation">Emulación NFC</option>
+                        <option value="codigo_qr">Código QR</option>
+                    </select>
+                </div>
+
+                <!-- PIN (si se selecciona PIN) -->
+                <div class="form-section" id="seccionPin" style="display: none;">
+                    <label for="pin">
+                        <i class="bi bi-asterisk"></i> Configura tu PIN
+                    </label>
+                    <input type="password" id="pin" class="form-control" 
+                           placeholder="5 dígitos" maxlength="5" pattern="[0-9]{5}">
+                </div>
+
+                <div class="alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    Tu dispositivo podrá acceder al sistema usando este método de autenticación.
+                </div>
+
+                <button type="submit" class="btn btn-registrar" id="btnRegistrar">
+                    <i class="bi bi-check-circle"></i> Registrar Dispositivo
+                </button>
+            </form>
+        </div>
+
+        <!-- Tab: Registro por Código -->
+        <div class="tab-content" id="tab-codigo">
+            <form id="formRegistroCodigo">
+                <div class="alert-info">
+                    <i class="bi bi-qr-code-scan"></i> 
+                    Escanea el código QR que te proporcione tu administrador
+                </div>
+
+                <div class="form-section">
+                    <label for="codigoRegistro">
+                        <i class="bi bi-type"></i> Código de Registro
+                    </label>
+                    <input type="text" id="codigoRegistro" class="form-control" 
+                           placeholder="Ej: ABC123XYZ789..." required>
+                    <small class="text-muted">Código único de una sola vez</small>
+                </div>
+
+                <div class="form-section">
+                    <label for="nombreDispositivo2">
+                        <i class="bi bi-label"></i> Nombre del Dispositivo
+                    </label>
+                    <input type="text" id="nombreDispositivo2" class="form-control" 
+                           placeholder="Ej: Mi Xiaomi..." required>
+                </div>
+
+                <button type="submit" class="btn btn-registrar" id="btnRegistrarCodigo">
+                    <i class="bi bi-check-circle"></i> Registrar con Código
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Detectar información del dispositivo
+        function detectarDispositivo() {
+            const ua = navigator.userAgent;
+            let tipo = 'web';
+            let so_version = '';
+
+            if (/Android/.test(ua)) {
+                tipo = 'android';
+                so_version = ua.match(/Android ([0-9.]+)/)?.[1] || 'Desconocida';
+            } else if (/iPhone|iPad|iPod/.test(ua)) {
+                tipo = 'ios';
+                so_version = ua.match(/OS ([0-9_]+)/)?.[1]?.replace(/_/g, '.') || 'Desconocida';
+            }
+
+            document.getElementById('tipoDispositivo').value = tipo;
+            document.getElementById('soVersion').value = 
+                tipo === 'web' ? `${navigator.userAgent.split(' ').pop()}` : 
+                `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} ${so_version}`;
+
+            // Habilitar NFC si dispositivo lo soporta
+            if ('NDEFReader' in window) {
+                document.getElementById('tieneNfc').checked = true;
+                document.getElementById('tieneNfc').disabled = false;
+            }
+        }
+
+        // Cargar usuarios
+        async function cargarUsuarios() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const usuarios = await response.json();
+                
+                const select = document.getElementById('usuarioId');
+                usuarios.forEach(usuario => {
+                    const option = document.createElement('option');
+                    option.value = usuario.id;
+                    option.textContent = `${usuario.nombre} ${usuario.apellido}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+            }
+        }
+
+        // Cargar credenciales del usuario seleccionado
+        document.getElementById('usuarioId').addEventListener('change', async (e) => {
+            const usuarioId = e.target.value;
+            const select = document.getElementById('credencialUid');
+            select.innerHTML = '<option value="">-- Selecciona tu tarjeta --</option>';
+
+            if (!usuarioId) return;
+
+            try {
+                const response = await fetch(`/api/credenciales/usuario/${usuarioId}`);
+                const credenciales = await response.json();
+                
+                credenciales.forEach(credencial => {
+                    const option = document.createElement('option');
+                    option.value = credencial.uid_nfc;
+                    option.textContent = `${credencial.uid_nfc}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error cargando credenciales:', error);
+            }
+        });
+
+        // Mostrar/ocultar PIN
+        document.getElementById('metodoAutenticacion').addEventListener('change', (e) => {
+            document.getElementById('seccionPin').style.display = 
+                e.target.value === 'pin' ? 'block' : 'none';
+        });
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                e.target.classList.add('active');
+                document.getElementById('tab-' + e.target.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Registrar dispositivo (Manual)
+        document.getElementById('formRegistroManual').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnRegistrar');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+
+            try {
+                const response = await fetch('/api/dispositivos-moviles/registrar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({
+                        usuario_id: document.getElementById('usuarioId').value,
+                        credencial_uid: document.getElementById('credencialUid').value,
+                        nombre_dispositivo: document.getElementById('nombreDispositivo').value,
+                        uuid: generateUUID(),
+                        tipo_dispositivo: document.getElementById('tipoDispositivo').value,
+                        so_version: document.getElementById('soVersion').value,
+                        tiene_nfc: document.getElementById('tieneNfc').checked,
+                        metodo_autenticacion: document.getElementById('metodoAutenticacion').value,
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('successMessage').classList.add('show');
+                    document.getElementById('formRegistroManual').reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    alert('Error al registrar: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Registrar Dispositivo';
+            }
+        });
+
+        // Utilidad: Generar UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Inicializar
+        detectarDispositivo();
+        cargarUsuarios();
+    </script>
+</body>
+</html>

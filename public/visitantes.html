@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Visitantes - Control Access Security</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><img src="img/logo.png" alt="Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 8px;">Control Access Security</div>
+        <nav>
+            <a href="index.html" class="nav-item"> Dashboard (En vivo)</a>
+            <a href="usuario.html" class="nav-item"> Perfil y Usuarios</a>
+            <a href="visitantes.html" class="nav-item active"> Registro Visitantes</a>
+            <a href="horarios.html" class="nav-item"> Horarios y Vigencias</a>
+            <a href="reportes.html" class="nav-item"> Historial y Reportes</a>
+        </nav>
+    </aside>
+    
+    <main class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-header">
+                <div>
+                    <h1>Registro de Visitantes</h1>
+                    <div class="topbar-subtitle">Administra el acceso y las credenciales de los visitantes</div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openNewVisitanteModal()"> Registrar Visitante</button>
+                </div>
+            </div>
+        </header>
+        
+        <section class="content full">
+            <div class="main-content" id="visitantes-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando visitantes...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nuevo/Editar Visitante -->
+    <div id="modal-visitante" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modal-visitante-title">Registrar Nuevo Visitante</span>
+                <button class="modal-close">✕</button>
+            </div>
+
+            <form id="form-visitante">
+                <input type="hidden" id="visitante-id">
+
+                <div class="form-group">
+                    <label class="form-label">Nombre del Visitante *</label>
+                    <input type="text" id="nombre_visitante" class="form-control" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Empresa *</label>
+                        <input type="text" id="empresa" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Motivo de Visita</label>
+                        <input type="text" id="motivo" class="form-control" placeholder="Ej: Reunión, Mantenimiento">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Autorizado por</label>
+                    <input type="text" id="autorizado_por" class="form-control">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Fecha y Hora de Entrada Estimada</label>
+                        <input type="datetime-local" id="fecha_entrada" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fecha y Hora de Salida Estimada</label>
+                        <input type="datetime-local" id="fecha_salida" class="form-control">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-visitante')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/visitantes.js"></script>
+</body>
+</html>

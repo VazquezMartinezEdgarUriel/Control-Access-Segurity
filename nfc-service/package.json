@@ -1,0 +1,19 @@
+{
+  "name": "nfc-reader-service",
+  "version": "1.0.0",
+  "description": "NFC Reader Service for ACR122U",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app-v4.js",
+    "dev": "node app-v4.js",
+    "start-v3": "node app-v3.js",
+    "start-v2": "node app-v2.js",
+    "start-old": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
+  }
+}

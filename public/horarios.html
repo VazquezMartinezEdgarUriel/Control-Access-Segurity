@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horarios y Vigencias - Control Access Security</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><img src="img/logo.png" alt="Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 8px;">Control Access Security</div>
+        <nav>
+            <a href="index.html" class="nav-item"> Dashboard (En vivo)</a>
+            <a href="usuario.html" class="nav-item"> Perfil y Usuarios</a>
+            <a href="visitantes.html" class="nav-item"> Registro Visitantes</a>
+            <a href="horarios.html" class="nav-item active"> Horarios y Vigencias</a>
+            <a href="reportes.html" class="nav-item"> Historial y Reportes</a>
+        </nav>
+    </aside>
+    
+    <main class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-header">
+                <div>
+                    <h1>Horarios y Vigencias</h1>
+                    <div class="topbar-subtitle">Gestiona horarios de acceso y vigencias</div>
+                </div>
+            </div>
+        </header>
+        
+        <section class="content full">
+            <div class="main-content" id="horarios-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando horarios...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nuevo Horario -->
+    <div id="modal-horario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <span>Agregar Horario para</span>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);" id="modal-horario-user"></div>
+                </div>
+                <button class="modal-close">✕</button>
+            </div>
+
+            <form id="form-horario">
+                <input type="hidden" id="horario-usuario-id">
+                <input type="hidden" id="horario-id">
+
+                <div class="form-group">
+                    <label class="form-label">Día de la Semana *</label>
+                    <select id="dia_semana" class="form-control" required>
+                        <option value="">Selecciona...</option>
+                        <option value="1">Lunes</option>
+                        <option value="2">Martes</option>
+                        <option value="3">Miércoles</option>
+                        <option value="4">Jueves</option>
+                        <option value="5">Viernes</option>
+                        <option value="6">Sábado</option>
+                        <option value="7">Domingo</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Hora Inicio *</label>
+                        <input type="time" id="hora_inicio" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hora Fin *</label>
+                        <input type="time" id="hora_fin" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modal-horario')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Horario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/horarios.js"></script>
+</body>
+</html>

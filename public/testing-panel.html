@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Testing - Dispositivos Móviles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .container-test {
+            max-width: 1200px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .header-test h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .test-section {
+            padding: 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .test-section h2 {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .test-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .response-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .response-success {
+            border-left: 4px solid #28a745;
+        }
+
+        .response-error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .response-pending {
+            border-left: 4px solid #ffc107;
+        }
+
+        .row-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .tabs-test {
+            display: flex;
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checklist li.done {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .checklist li.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #667eea;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-test">
+        <!-- Header -->
+        <div class="header-test">
+            <h1><i class="bi bi-beaker"></i> Panel de Testing - Dispositivos Móviles</h1>
+            <p style="margin-top: 10px; opacity: 0.9;">Prueba todos los endpoints del sistema</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-test">
+            <button class="tab-btn active" onclick="mostrarTab('checklist')">
+                <i class="bi bi-check-circle"></i> Checklist
+            </button>
+            <button class="tab-btn" onclick="mostrarTab('registrar')">
+                <i class="bi bi-plus"></i> Registrar
+            </button>
+            <button class="tab-btn" onclick="mostrarTab('verificar')">
+                <i class="bi bi-shield-check"></i> Verificar
+            </button>
+            <button class="tab-btn" onclick="mostrarTab('listar')">
+                <i class="bi bi-list"></i> Listar
+            </button>
+            <button class="tab-btn" onclick="mostrarTab('acciones')">
+                <i class="bi bi-gear"></i> Acciones
+            </button>
+        </div>
+
+        <!-- Tab: Checklist -->
+        <div id="tab-checklist" class="tab-content active">
+            <div class="test-section">
+                <h2>Verificación del Sistema</h2>
+                <ul class="checklist">
+                    <li id="check-db"><span class="spinner"></span> Base de datos: Tabla dispositivos_moviles</li>
+                    <li id="check-rutas"><span class="spinner"></span> Rutas web configuradas</li>
+                    <li id="check-api"><span class="spinner"></span> APIs disponibles</li>
+                    <li id="check-usuarios"><span class="spinner"></span> Usuarios en base de datos</li>
+                    <li id="check-credenciales"><span class="spinner"></span> Credenciales NFC</li>
+                    <li id="check-nfc-service"><span class="spinner"></span> Servicio NFC en puerto 3001</li>
+                </ul>
+                <button class="btn-test" onclick="ejecutarChecklist()" style="margin-top: 20px;">
+                    <i class="bi bi-play"></i> Ejecutar Verificación
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab: Registrar Dispositivo -->
+        <div id="tab-registrar" class="tab-content">
+            <div class="test-section">
+                <h2>Registrar Nuevo Dispositivo</h2>
+                
+                <div class="test-form">
+                    <div class="row-form">
+                        <div class="form-group">
+                            <label>ID Usuario</label>
+                            <input type="number" id="regUsuarioId" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>UID Credencial</label>
+                            <input type="text" id="regCredencialUid" value="ABC123DEF456">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre Dispositivo</label>
+                            <input type="text" id="regNombre" value="Mi Xiaomi Test">
+                        </div>
+                    </div>
+
+                    <div class="row-form">
+                        <div class="form-group">
+                            <label>Tipo Dispositivo</label>
+                            <select id="regTipo">
+                                <option value="android">Android</option>
+                                <option value="ios">iOS</option>
+                                <option value="web">Web</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Versión SO</label>
+                            <input type="text" id="regVersion" value="Android 13">
+                        </div>
+                        <div class="form-group">
+                            <label>Método Autenticación</label>
+                            <select id="regMetodo">
+                                <option value="pin">PIN</option>
+                                <option value="biometrico">Biométrico</option>
+                                <option value="nfc_emulation">NFC Emulation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="regNFC"> Este dispositivo tiene NFC
+                        </label>
+                    </div>
+
+                    <button class="btn-test" onclick="testRegistrar()">
+                        <i class="bi bi-send"></i> Registrar Dispositivo
+                    </button>
+                </div>
+
+                <div id="regResponse"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Verificar Acceso -->
+        <div id="tab-verificar" class="tab-content">
+            <div class="test-section">
+                <h2>Verificar Acceso (Autenticación)</h2>
+                
+                <div class="test-form">
+                    <div class="row-form">
+                        <div class="form-group">
+                            <label>UUID Dispositivo</label>
+                            <input type="text" id="verUuid" placeholder="Usa el UUID del dispositivo registrado">
+                        </div>
+                        <div class="form-group">
+                            <label>Método</label>
+                            <select id="verMetodo">
+                                <option value="pin">PIN</option>
+                                <option value="biometrico">Biométrico</option>
+                                <option value="nfc_emulation">NFC</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>PIN (si aplica)</label>
+                            <input type="password" id="verPin" placeholder="5 dígitos" maxlength="5">
+                        </div>
+                    </div>
+
+                    <button class="btn-test" onclick="testVerificar()">
+                        <i class="bi bi-shield-check"></i> Verificar Credencial
+                    </button>
+                </div>
+
+                <div id="verResponse"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Listar Dispositivos -->
+        <div id="tab-listar" class="tab-content">
+            <div class="test-section">
+                <h2>Listar Dispositivos de Usuario</h2>
+                
+                <div class="test-form">
+                    <div class="form-group">
+                        <label>ID Usuario</label>
+                        <input type="number" id="listUsuarioId" value="1" min="1">
+                    </div>
+
+                    <button class="btn-test" onclick="testListar()">
+                        <i class="bi bi-list"></i> Listar
+                    </button>
+                </div>
+
+                <div id="listResponse"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Acciones -->
+        <div id="tab-acciones" class="tab-content">
+            <div class="test-section">
+                <h2>Acciones en Dispositivos</h2>
+                
+                <div class="test-form">
+                    <div class="form-group">
+                        <label>ID Dispositivo</label>
+                        <input type="number" id="accDispositivoId" value="1" min="1">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn-test" onclick="testAccion('obtener')">
+                            <i class="bi bi-eye"></i> Obtener
+                        </button>
+                        <button class="btn-test" onclick="testAccion('bloquear')">
+                            <i class="bi bi-lock"></i> Bloquear
+                        </button>
+                        <button class="btn-test" onclick="testAccion('desbloquear')">
+                            <i class="bi bi-unlock"></i> Desbloquear
+                        </button>
+                        <button class="btn-test" onclick="testAccion('acceso')">
+                            <i class="bi bi-calendar-check"></i> Registrar Acceso
+                        </button>
+                        <button class="btn-test" onclick="testAccion('eliminar')" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="accResponse"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Mostrar tab
+        function mostrarTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Mostrar response
+        function mostrarResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            const className = isError ? 'response-error' : 'response-success';
+            element.innerHTML = `<div class="response-box ${className}"><strong>${isError ? '❌ Error' : '✓ Éxito'}:</strong>\n${JSON.stringify(data, null, 2)}</div>`;
+        }
+
+        // Test: Registrar
+        async function testRegistrar() {
+            const body = {
+                usuario_id: parseInt(document.getElementById('regUsuarioId').value),
+                credencial_uid: document.getElementById('regCredencialUid').value,
+                nombre_dispositivo: document.getElementById('regNombre').value,
+                uuid: generateUUID(),
+                tipo_dispositivo: document.getElementById('regTipo').value,
+                so_version: document.getElementById('regVersion').value,
+                tiene_nfc: document.getElementById('regNFC').checked,
+                metodo_autenticacion: document.getElementById('regMetodo').value,
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/dispositivos-moviles/registrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                mostrarResponse('regResponse', data, !response.ok);
+            } catch (error) {
+                mostrarResponse('regResponse', { error: error.message }, true);
+            }
+        }
+
+        // Test: Verificar
+        async function testVerificar() {
+            const body = {
+                uuid: document.getElementById('verUuid').value,
+                metodo: document.getElementById('verMetodo').value,
+                pin: document.getElementById('verPin').value,
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/dispositivos-moviles/verificar-credencial`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                mostrarResponse('verResponse', data, !response.ok);
+            } catch (error) {
+                mostrarResponse('verResponse', { error: error.message }, true);
+            }
+        }
+
+        // Test: Listar
+        async function testListar() {
+            try {
+                const usuarioId = document.getElementById('listUsuarioId').value;
+                const response = await fetch(`${API_BASE}/dispositivos-moviles/usuario/${usuarioId}`);
+                const data = await response.json();
+                mostrarResponse('listResponse', data, !response.ok);
+            } catch (error) {
+                mostrarResponse('listResponse', { error: error.message }, true);
+            }
+        }
+
+        // Test: Acciones
+        async function testAccion(accion) {
+            const dispositivoId = document.getElementById('accDispositivoId').value;
+
+            try {
+                let url = `${API_BASE}/dispositivos-moviles/${dispositivoId}`;
+                let method = 'GET';
+                let body = null;
+
+                if (accion === 'bloquear') {
+                    url += '/bloquear';
+                    method = 'PATCH';
+                } else if (accion === 'desbloquear') {
+                    url += '/desbloquear';
+                    method = 'PATCH';
+                } else if (accion === 'acceso') {
+                    url += '/acceso';
+                    method = 'POST';
+                    body = JSON.stringify({ ip: '127.0.0.1', ubicacion: 'Testing' });
+                } else if (accion === 'eliminar') {
+                    method = 'DELETE';
+                }
+
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body
+                });
+                const data = await response.json();
+                mostrarResponse('accResponse', data, !response.ok);
+            } catch (error) {
+                mostrarResponse('accResponse', { error: error.message }, true);
+            }
+        }
+
+        // Ejecutar checklist
+        async function ejecutarChecklist() {
+            const items = [
+                { id: 'check-db', url: `${API_BASE}/usuarios`, label: 'Usuarios API' },
+                { id: 'check-credenciales', url: `${API_BASE}/credenciales`, label: 'Credenciales API' },
+            ];
+
+            for (const item of items) {
+                try {
+                    const response = await fetch(item.url);
+                    if (response.ok) {
+                        document.getElementById(item.id).innerHTML = `<i class="bi bi-check-circle" style="color: green;"></i> ${item.label} - OK`;
+                        document.getElementById(item.id).classList.add('done');
+                    } else {
+                        throw new Error('API no respondió');
+                    }
+                } catch (error) {
+                    document.getElementById(item.id).innerHTML = `<i class="bi bi-x-circle" style="color: red;"></i> ${item.label} - Error`;
+                    document.getElementById(item.id).classList.add('error');
+                }
+            }
+        }
+
+        // Generar UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+    </script>
+</body>
+</html>

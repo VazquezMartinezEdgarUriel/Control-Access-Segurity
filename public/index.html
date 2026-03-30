@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Access Security - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><img src="img/logo.png" alt="Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 8px;">Control Access Security</div>
+        <nav>
+            <a href="index.html" class="nav-item active"> Dashboard (En vivo)</a>
+            <a href="usuario.html" class="nav-item"> Perfil y Usuarios</a>
+            <a href="visitantes.html" class="nav-item"> Registro Visitantes</a>
+            <a href="horarios.html" class="nav-item"> Horarios y Vigencias</a>
+            <a href="reportes.html" class="nav-item"> Historial y Reportes</a>
+        </nav>
+    </aside>
+    
+    <main class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-header">
+                <div>
+                    <h1>Monitoreo de Accesos</h1>
+                    <div class="topbar-subtitle">Sistema en vivo</div>
+                </div>
+                <div class="topbar-right">
+                    <div>
+                        <div class="topbar-time" id="current-time"></div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;" id="current-date"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <section class="content">
+            <div class="main-content">
+                <div class="card">
+                    <div class="card-header">
+                        Accesos Peatonales Recientes
+                        <div class="card-header-right">
+                            <button class="btn btn-primary" onclick="exportToCSV()"> Exportar</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>HORA</th>
+                                <th>USUARIO</th>
+                                <th>UID NFC</th>
+                                <th>TIPO</th>
+                                <th>ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-list">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Accesos Vehiculares Recientes</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>HORA</th>
+                                <th>PLACA</th>
+                                <th>USUARIO</th>
+                                <th>RESULTADO</th>
+                                <th>IMAGEN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicular-logs-list">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <aside style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="sidebar-card">
+                    <div class="sidebar-header"> Estadísticas</div>
+                    
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-label">Total Usuarios</span>
+                        <span class="sidebar-stat-value stat-usuarios">-</span>
+                    </div>
+                    
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-label">Total Vehículos</span>
+                        <span class="sidebar-stat-value stat-vehiculos">-</span>
+                    </div>
+                    
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-label">Accesos Peatonales</span>
+                        <span class="sidebar-stat-value stat-accesos-peatonal">-</span>
+                    </div>
+                    
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-label">Accesos Vehiculares</span>
+                        <span class="sidebar-stat-value stat-accesos-vehicular">-</span>
+                    </div>
+                    
+                    <div class="sidebar-stat">
+                        <span class="sidebar-stat-label">Accesos Denegados</span>
+                        <span class="sidebar-stat-value stat-denegados" style="color: var(--danger);">-</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-header"> Alertas Activas</div>
+                    <div class="text-muted" style="font-size: 0.9rem; text-align: center; padding: 20px 0;">
+                        Sistema operativo correctamente
+                    </div>
+                </div>
+
+                <!-- Panel NFC en vivo -->
+                <div class="sidebar-card" id="nfc-panel">
+                    <div class="sidebar-header"> Validación NFC</div>
+                    <div style="text-align: center; padding: 10px 0;">
+                        <div id="nfc-status" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+                            ⏳ Conectando al lector...
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            Lector siempre activo — acerque una tarjeta
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <!-- Modal de Validación NFC -->
+    <div class="modal" id="nfc-validation-modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="img/logo.png" alt="Logo" style="width: 32px; height: 32px;">
+                    <span id="modal-title">Validación de Tarjeta NFC</span>
+                </div>
+                <button class="modal-close" onclick="closeValidationModal()">&times;</button>
+            </div>
+
+            <!-- Barra de progreso auto-cierre -->
+            <div id="auto-close-bar" style="height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; display: none;">
+                <div id="auto-close-progress" style="height: 100%; width: 100%; background: var(--accent-blue); transition: width linear;"></div>
+            </div>
+
+            <!-- Resultado de validación -->
+            <div id="validation-result" style="text-align: center; padding: 15px 0;">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

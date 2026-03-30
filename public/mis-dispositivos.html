@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Dispositivos - Control Access</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .navbar-brand {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .container-main {
+            max-width: 1000px;
+            margin-top: 30px;
+        }
+
+        .header-section {
+            background: lineal-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .header-section h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header-section p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .card-dispositivo {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .card-dispositivo:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-dispositivo .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-dispositivo .card-header h5 {
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .badge-estado {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-bloqueado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .device-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .device-row:last-child {
+            border-bottom: none;
+        }
+
+        .device-row .icono {
+            font-size: 28px;
+            color: #667eea;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .device-row .info {
+            flex: 1;
+        }
+
+        .device-row .info-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .device-row .info-valor {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .device-row .acciones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm-custom {
+            padding: 5px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-info-custom {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .btn-info-custom:hover {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
+        .btn-danger-custom {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .btn-danger-custom:hover {
+            background: #ffcdd2;
+            color: #b71c1c;
+        }
+
+        .btn-registrar-nuevo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-registrar-nuevo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card .numero {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shield-check"></i> Control Access
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/mis-dispositivos">Mis Dispositivos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/perfil">Mi Perfil</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal -->
+    <div class="container-main">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1><i class="bi bi-smartphone"></i> Mis Dispositivos Registrados</h1>
+            <p>Administra los teléfonos y dispositivos que tienes registrados en el sistema</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="numero" id="totalDispositivos">0</div>
+                <div class="label">Total de Dispositivos</div>
+            </div>
+            <div class="stat-card">
+                <div class="numero" id="dispositivosActivos">0</div>
+                <div class="label">Dispositivos Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="numero" id="dispositivosBloqueados">0</div>
+                <div class="label">Bloqueados</div>
+            </div>
+        </div>
+
+        <!-- Botón Registrar Nuevo -->
+        <div style="margin-bottom: 30px; text-align: center;">
+            <a href="/registrar-dispositivo" class="btn btn-registrar-nuevo">
+                <i class="bi bi-plus-circle"></i> Registrar Nuevo Dispositivo
+            </a>
+        </div>
+
+        <!-- Lista de Dispositivos -->
+        <div id="dispositivosContainer">
+            <!-- Se carga dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Modal Detalles -->
+    <div class="modal fade" id="modalDetalles" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-smartphone"></i> Detalles del Dispositivo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let dispositivosData = [];
+        let usuarioActual = null;
+
+        // Obtener ID del usuario desde localStorage o URL
+        function obtenerUsuarioId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('usuario') || localStorage.getItem('usuarioId') || 1;
+        }
+
+        // Cargar dispositivos
+        async function cargarDispositivos() {
+            try {
+                const usuarioId = obtenerUsuarioId();
+                const response = await fetch(`/api/dispositivos-moviles/usuario/${usuarioId}`);
+                
+                if (response.ok) {
+                    dispositivosData = await response.json();
+                    mostrarDispositivos();
+                    actualizarEstadisticas();
+                } else {
+                    mostrarEmpty();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarEmpty();
+            }
+        }
+
+        // Mostrar dispositivos
+        function mostrarDispositivos() {
+            const container = document.getElementById('dispositivosContainer');
+            
+            if (dispositivosData.length === 0) {
+                mostrarEmpty();
+                return;
+            }
+
+            container.innerHTML = dispositivosData.map(dispositivo => `
+                <div class="card card-dispositivo">
+                    <div class="card-header">
+                        <h5>
+                            ${getIconoDispositivo(dispositivo.tipo_dispositivo)}
+                            ${dispositivo.nombre_dispositivo}
+                        </h5>
+                        <span class="badge ${dispositivo.estado === 'activo' ? 'badge-activo' : 'badge-bloqueado'}">
+                            ${dispositivo.estado === 'activo' ? 'Activo' : 'Bloqueado'}
+                        </span>
+                    </div>
+                    <div class="card-body" style="padding: 20px;">
+                        <!-- Tipo y SO -->
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-gear"></i></div>
+                            <div class="info">
+                                <div class="info-label">Sistema Operativo</div>
+                                <div class="info-valor">${dispositivo.tipo_dispositivo.toUpperCase()} ${dispositivo.so_version}</div>
+                            </div>
+                        </div>
+
+                        <!-- UUID -->
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-key"></i></div>
+                            <div class="info">
+                                <div class="info-label">UUID del Dispositivo</div>
+                                <div class="info-valor" style="word-break: break-all;">${dispositivo.uuid}</div>
+                            </div>
+                        </div>
+
+                        <!-- Método de Autenticación -->
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-shield-lock"></i></div>
+                            <div class="info">
+                                <div class="info-label">Método de Acceso</div>
+                                <div class="info-valor">${getMetodoLabel(dispositivo.metodo_autenticacion)}</div>
+                            </div>
+                        </div>
+
+                        <!-- Tiene NFC -->
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-wifi"></i></div>
+                            <div class="info">
+                                <div class="info-label">Capacidad NFC</div>
+                                <div class="info-valor">${dispositivo.tiene_nfc ? 'Sí (Emulación disponible)' : 'No'}</div>
+                            </div>
+                        </div>
+
+                        <!-- Último Acceso -->
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-clock"></i></div>
+                            <div class="info">
+                                <div class="info-label">Último Acceso</div>
+                                <div class="info-valor">${formatearFecha(dispositivo.ultimo_acceso)}</div>
+                            </div>
+                        </div>
+
+                        <!-- Intentos Fallidos -->
+                        ${dispositivo.intentos_fallidos > 0 ? `
+                        <div class="device-row">
+                            <div class="icono"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="info">
+                                <div class="info-label">Intentos Fallidos</div>
+                                <div class="info-valor" style="color: #d9534f;">${dispositivo.intentos_fallidos}/5</div>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Acciones -->
+                        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button class="btn btn-sm-custom btn-info-custom" onclick="mostrarDetalles('${dispositivo.id}')">
+                                <i class="bi bi-info-circle"></i> Detalles
+                            </button>
+                            ${dispositivo.estado === 'bloqueado' ? `
+                                <button class="btn btn-sm-custom btn-info-custom" onclick="desbloquearDispositivo('${dispositivo.id}')">
+                                    <i class="bi bi-unlock"></i> Desbloquear
+                                </button>
+                            ` : `
+                                <button class="btn btn-sm-custom btn-danger-custom" onclick="bloquearDispositivo('${dispositivo.id}')">
+                                    <i class="bi bi-lock"></i> Bloquear
+                                </button>
+                            `}
+                            <button class="btn btn-sm-custom btn-danger-custom" onclick="eliminarDispositivo('${dispositivo.id}')">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Mostrar estado vacío
+        function mostrarEmpty() {
+            const container = document.getElementById('dispositivosContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-smartphone"></i>
+                    </div>
+                    <h3>No hay dispositivos registrados</h3>
+                    <p>Aún no has registrado ningún dispositivo. Registra tu teléfono para empezar a usar el acceso móvil.</p>
+                    <a href="/registrar-dispositivo" class="btn btn-registrar-nuevo">
+                        <i class="bi bi-plus-circle"></i> Registrar Dispositivo
+                    </a>
+                </div>
+            `;
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            const total = dispositivosData.length;
+            const activos = dispositivosData.filter(d => d.estado === 'activo').length;
+            const bloqueados = dispositivosData.filter(d => d.estado === 'bloqueado').length;
+
+            document.getElementById('totalDispositivos').textContent = total;
+            document.getElementById('dispositivosActivos').textContent = activos;
+            document.getElementById('dispositivosBloqueados').textContent = bloqueados;
+        }
+
+        // Helpers
+        function getIconoDispositivo(tipo) {
+            const iconos = {
+                'android': '<i class="bi bi-android2" style="color: #3DDC84;"></i>',
+                'ios': '<i class="bi bi-apple" style="color: #555;"></i>',
+                'web': '<i class="bi bi-globe" style="color: #667eea;"></i>'
+            };
+            return iconos[tipo] || '<i class="bi bi-smartphone"></i>';
+        }
+
+        function getMetodoLabel(metodo) {
+            const metodos = {
+                'pin': 'PIN de 5 dígitos',
+                'biometrico': 'Huella / Reconocimiento facial',
+                'nfc_emulation': 'Emulación NFC',
+                'codigo_qr': 'Código QR'
+            };
+            return metodos[metodo] || metodo;
+        }
+
+        function formatearFecha(fecha) {
+            if (!fecha) return 'Nunca';
+            const date = new Date(fecha);
+            return date.toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Bloquear dispositivo
+        async function bloquearDispositivo(id) {
+            if (!confirm('¿Deseas bloquear este dispositivo?')) return;
+
+            try {
+                const response = await fetch(`/api/dispositivos-moviles/${id}/bloquear`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    cargarDispositivos();
+                } else {
+                    alert('Error al bloquear dispositivo');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Desbloquear dispositivo
+        async function desbloquearDispositivo(id) {
+            try {
+                const response = await fetch(`/api/dispositivos-moviles/${id}/desbloquear`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    cargarDispositivos();
+                } else {
+                    alert('Error al desbloquear dispositivo');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Mostrar detalles
+        function mostrarDetalles(id) {
+            const dispositivo = dispositivosData.find(d => d.id === id);
+            if (!dispositivo) return;
+
+            const body = document.getElementById('modalBody');
+            body.innerHTML = `
+                <p><strong>Nombre:</strong> ${dispositivo.nombre_dispositivo}</p>
+                <p><strong>Tipo:</strong> ${dispositivo.tipo_dispositivo}</p>
+                <p><strong>SO:</strong> ${dispositivo.so_version}</p>
+                <p><strong>UUID:</strong> <code>${dispositivo.uuid}</code></p>
+                <p><strong>Método:</strong> ${getMetodoLabel(dispositivo.metodo_autenticacion)}</p>
+                <p><strong>Estado:</strong> ${dispositivo.estado}</p>
+                <p><strong>Registrado:</strong> ${formatearFecha(dispositivo.created_at)}</p>
+            `;
+
+            new bootstrap.Modal(document.getElementById('modalDetalles')).show();
+        }
+
+        // Eliminar dispositivo
+        async function eliminarDispositivo(id) {
+            if (!confirm('¿Deseas eliminar este dispositivo? No podrá acceder más a través de él.')) return;
+
+            try {
+                const response = await fetch(`/api/dispositivos-moviles/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    cargarDispositivos();
+                } else {
+                    alert('Error al eliminar dispositivo');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Inicializar
+        cargarDispositivos();
+    </script>
+</body>
+</html>
