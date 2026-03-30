@@ -85,6 +85,11 @@ async function validateNFCCard(uid) {
     const modal = document.getElementById('nfc-validation-modal');
     const resultDiv = document.getElementById('validation-result');
 
+    if (!modal || !resultDiv) {
+        console.error('❌ Modal no encontrado en el DOM');
+        return;
+    }
+
     // Mostrar modal con loading
     resultDiv.innerHTML = `
         <div style="padding: 30px;">
@@ -95,20 +100,47 @@ async function validateNFCCard(uid) {
     modal.classList.add('active');
 
     try {
+        console.log('🔄 Enviando validación de tarjeta:', uid);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // Timeout 8s
+        
         const response = await fetch('/api/credenciales/validar-nfc', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({ uid_nfc: uid })
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ uid_nfc: uid }),
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('✅ Respuesta recibida:', data);
         showValidationResult(data);
+        
     } catch (error) {
+        console.error('❌ Error en validación:', error.message);
+        
+        const errorMsg = error.name === 'AbortError' 
+            ? 'Timeout - El servidor no responde'
+            : error.message;
+            
         resultDiv.innerHTML = `
             <div style="padding: 20px;">
                 <div style="font-size: 3rem;">⚠️</div>
-                <h3 style="color: var(--danger); margin: 10px 0;">Error de Conexión</h3>
-                <p style="color: var(--text-muted);">No se pudo conectar con el servidor</p>
+                <h3 style="color: var(--danger); margin: 10px 0;">Error de Validación</h3>
+                <p style="color: var(--text-muted);">${errorMsg}</p>
                 <p class="nfc" style="margin-top: 10px;">${uid}</p>
+                <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                    Revisa la consola para más detalles
+                </p>
             </div>
         `;
     }
@@ -296,44 +328,55 @@ async function loadAccesosVehiculares() {
  */
 async function loadStats() {
     try {
+        console.log('📊 Cargando estadísticas...');
+        
+        const fetchWithTimeout = (url, timeout = 5000) => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            return fetch(url, { signal: controller.signal })
+                .then(r => {
+                    clearTimeout(timeoutId);
+                    return r.json();
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.warn(`❌ Error en ${url}:`, error.message);
+                    return [];
+                });
+        };
+        
         const [usuarios, vehiculos, accesoPeatonal, accesoVehicular] = await Promise.all([
-            fetch('/api/usuarios').then(r => r.json()),
-            fetch('/api/vehiculos').then(r => r.json()),
-            fetch('/api/acceso-peatonal').then(r => r.json()),
-            fetch('/api/acceso-vehicular').then(r => r.json())
+            fetchWithTimeout('/api/usuarios'),
+            fetchWithTimeout('/api/vehiculos'),
+            fetchWithTimeout('/api/acceso-peatonal?limit=1000'),
+            fetchWithTimeout('/api/acceso-vehicular?limit=1000')
         ]);
-        
-        // Actualizar stats en la barra lateral
-        document.querySelectorAll('.stat-usuarios').forEach(el => {
-            el.textContent = (Array.isArray(usuarios) ? usuarios.length : 0);
-        });
-        
-        document.querySelectorAll('.stat-vehiculos').forEach(el => {
-            el.textContent = (Array.isArray(vehiculos) ? vehiculos.length : 0);
-        });
-        
-        document.querySelectorAll('.stat-accesos-peatonal').forEach(el => {
-            el.textContent = (Array.isArray(accesoPeatonal) ? accesoPeatonal.length : 0);
-        });
-        
-        document.querySelectorAll('.stat-accesos-vehicular').forEach(el => {
-            el.textContent = (Array.isArray(accesoVehicular) ? accesoVehicular.length : 0);
-        });
-        
-        // Accesos denegados
-        const denegadosPeatonal = Array.isArray(accesoPeatonal) 
+
+        // Contar accesos peatonales
+        const countPeaton = Array.isArray(accesoPeatonal) ? accesoPeatonal.length : 0;
+        const countVehicular = Array.isArray(accesoVehicular) ? accesoVehicular.length : 0;
+        const countDenegados = Array.isArray(accesoPeatonal) 
             ? accesoPeatonal.filter(a => a.resultado === 'denegado').length 
             : 0;
-        const denegadosVehicular = Array.isArray(accesoVehicular) 
-            ? accesoVehicular.filter(a => a.resultado === 'denegado').length 
-            : 0;
+
+        // Actualizar elementos del DOM
+        const elements = {
+            '.stat-total-usuarios': Array.isArray(usuarios) ? usuarios.length : '-',
+            '.stat-total-vehiculos': Array.isArray(vehiculos) ? vehiculos.length : '-',
+            '.stat-accesos-peatonal': countPeaton,
+            '.stat-accesos-vehicular': countVehicular,
+            '.stat-accesos-denegados': countDenegados
+        };
         
-        document.querySelectorAll('.stat-denegados').forEach(el => {
-            el.textContent = denegadosPeatonal + denegadosVehicular;
-        });
-        
+        for (const [selector, value] of Object.entries(elements)) {
+            const els = document.querySelectorAll(selector);
+            els.forEach(el => { el.textContent = value; });
+        }
+
+        console.log('✅ Estadísticas actualizadas');
     } catch (error) {
-        console.error('Error cargando estadísticas:', error);
+        console.error('❌ Error cargando estadísticas:', error);
     }
 }
 

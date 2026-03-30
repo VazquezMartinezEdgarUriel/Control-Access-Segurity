@@ -1,3 +1,4 @@
+
 const express = require('express');
 const WebSocket = require('ws');
 const cors = require('cors');
@@ -20,8 +21,7 @@ let lastDetectedUID = null;  // Último UID detectado (para evitar repeticiones)
 let isPolling = true;         // Siempre activo
 let pollTimer = null;
 
-const POLL_INTERVAL = 800;    // Intervalo de polling en ms
-const SCRIPT_PATH = path.join(__dirname, 'read-nfc.ps1');
+const POLL_INTERVAL = 300;    // Reducido a 300ms (era 800ms)
 
 /**
  * Lee el UID de la tarjeta NFC usando el script PowerShell

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico NFC - Control Access Security</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        h2 { color: #555; margin-top: 25px; font-size: 1.2rem; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .status { padding: 15px; margin: 10px 0; border-left: 4px solid; border-radius: 4px; }
+        .status.ok { background: #d4edda; border-color: #28a745; color: #155724; }
+        .status.error { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .status.pending { background: #fff3cd; border-color: #ffc107; color: #856404; }
+        .status.info { background: #d1ecf1; border-color: #17a2b8; color: #0c5460; }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1rem;
+        }
+        button:hover { background: #2980b9; }
+        button.danger { background: #e74c3c; }
+        button.danger:hover { background: #c0392b; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .log-entry { margin: 5px 0; padding: 3px 0; border-bottom: 1px solid #eee; }
+        .log-entry.error { color: #dc3545; }
+        .log-entry.success { color: #28a745; }
+        .log-entry.info { color: #17a2b8; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .card { background: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico de Sistema NFC</h1>
+        
+        <div class="status info">
+            📋 <strong>Instrucciones:</strong> Ejecuta los tests en orden. Cuando se cuelgue, sabremos exactamente dónde está el problema.
+        </div>
+
+        <!-- Test 1: API -->
+        <h2>1️⃣ Verificar API Backend</h2>
+        <button onclick="testAPI()">Test Conexión API</button>
+        <div id="test-api-result"></div>
+
+        <!-- Test 2: WebSocket -->
+        <h2>2️⃣ Verificar WebSocket NFC</h2>
+        <button onclick="testWebSocket()">Test WebSocket</button>
+        <button class="danger" onclick="closeWebSocket()">Cerrar WebSocket</button>
+        <div id="test-ws-result"></div>
+
+        <!-- Test 3: Endpoint validarNfc -->
+        <h2>3️⃣ Validación de Tarjeta (El Test Crítico)</h2>
+        <div>
+            <input type="text" id="test-uid" placeholder="UID (ej: A1:B2:C3:D4:E5:01)" value="A1:B2:C3:D4:E5:01" style="padding: 8px; width: 250px;">
+            <button onclick="testValidarNfc()">Test Validar NFC</button>
+            <button onclick="testValidarNfcWithTimeout()" class="danger">Test con Timeout (Detectar Bloqueo)</button>
+        </div>
+        <div id="test-validar-result"></div>
+
+        <!-- Test 4: Base de Datos -->
+        <h2>4️⃣ Diagnóstico Database</h2>
+        <button onclick="testDatabase()">Test DB</button>
+        <div id="test-db-result"></div>
+
+        <!-- Logs -->
+        <h2>📊 Registro de Actividad</h2>
+        <button onclick="clearLogs()">Limpiar Logs</button>
+        <button onclick="downloadLogs()">Descargar Logs</button>
+        <div id="logs" class="log"></div>
+
+        <!-- Network Tab Monitor -->
+        <h2>🌐 Monitor de Requests</h2>
+        <div id="network-monitor" class="log" style="max-height: 300px;"></div>
+    </div>
+
+    <script>
+        let logs = [];
+        let wsTest = null;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            logs.push({ message, type, timestamp });
+            
+            const logsDiv = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            div.textContent = entry;
+            logsDiv.appendChild(div);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            
+            console.log(entry);
+        }
+
+        function clearLogs() {
+            logs = [];
+            document.getElementById('logs').innerHTML = '';
+            log('Logs limpiados', 'info');
+        }
+
+        function downloadLogs() {
+            const content = logs.map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.message}`).join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nfc-diagnostic-${new Date().getTime()}.txt`;
+            a.click();
+        }
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('test-api-result');
+            resultDiv.innerHTML = '<div class="status pending">🔄 Testeando API...</div>';
+            
+            try {
+                log('Iniciando test API...', 'info');
+                
+                const start = Date.now();
+                const response = await fetch('/api/usuarios', { signal: AbortSignal.timeout(5000) });
+                const duration = Date.now() - start;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `<div class="status ok">✅ API respondiendo correctamente (${duration}ms) - ${Array.isArray(data) ? data.length + ' usuarios' : 'datos recibidos'}</div>`;
+                    log(`✅ API OK (${duration}ms)`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+                log(`❌ Error API: ${error.message}`, 'error');
+            }
+        }
+
+        async function testWebSocket() {
+            const resultDiv = document.getElementById('test-ws-result');
+            try {
+                log('Conectando WebSocket...', 'info');
+                wsTest = new WebSocket('ws://localhost:3001');
+                
+                wsTest.onopen = () => {
+                    resultDiv.innerHTML = `<div class="status ok">✅ WebSocket conectado</div>`;
+                    log('✅ WebSocket conectado', 'success');
+                };
+                
+                wsTest.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    log(`📨 Mensaje recibido: ${data.type}`, 'info');
+                };
+                
+                wsTest.onerror = (error) => {
+                    resultDiv.innerHTML = `<div class="status error">❌ Error WebSocket</div>`;
+                    log('❌ Error WebSocket', 'error');
+                };
+                
+                wsTest.onclose = () => {
+                    resultDiv.innerHTML = `<div class="status error">❌ WebSocket cerrado</div>`;
+                    log('❌ WebSocket cerrado', 'error');
+                };
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+                log(`❌ Error WebSocket: ${error.message}`, 'error');
+            }
+        }
+
+        function closeWebSocket() {
+            if (wsTest) {
+                wsTest.close();
+                log('WebSocket cerrado manualmente', 'info');
+            }
+        }
+
+        async function testValidarNfc() {
+            const uid = document.getElementById('test-uid').value;
+            const resultDiv = document.getElementById('test-validar-result');
+            resultDiv.innerHTML = '<div class="status pending">🔄 Validando NFC...</div>';
+            
+            try {
+                log(`Validando UID: ${uid}`, 'info');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const start = Date.now();
+                
+                const response = await fetch('/api/credenciales/validar-nfc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid_nfc: uid }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                const duration = Date.now() - start;
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="status ok">✅ Respuesta recibida (${duration}ms)</div>
+                    <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px; overflow-x: auto;">
+${JSON.stringify(data, null, 2)}</pre>
+                `;
+                log(`✅ Validación OK (${duration}ms) - ${data.validacion}`, 'success');
+            } catch (error) {
+                const timeoutMsg = error.name === 'AbortError' ? ' (TIMEOUT - ENDPOINT SE CUELGA)' : '';
+                resultDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}${timeoutMsg}</div>`;
+                log(`❌ Error: ${error.message}${timeoutMsg}`, 'error');
+            }
+        }
+
+        async function testValidarNfcWithTimeout() {
+            const uid = document.getElementById('test-uid').value;
+            const resultDiv = document.getElementById('test-validar-result');
+            resultDiv.innerHTML = `
+                <div class="status pending">
+                    ⏳ TOMANDO TIEMPO... Si se cuelga aquí, el endpoint está fallando<br>
+                    <small>Timeout: 3 segundos</small>
+                </div>
+            `;
+            
+            try {
+                log('TEST CON TIMEOUT DE 3s - Detectando bloqueos', 'info');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    log('⚠️ TIMEOUT ALCANZADO - El endpoint se cuelga o es muy lento', 'error');
+                }, 3000);
+                const start = Date.now();
+                
+                const response = await fetch('/api/credenciales/validar-nfc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid_nfc: uid }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                const duration = Date.now() - start;
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="status ok">✅ Completado en ${duration}ms (OK)</div>
+                    <pre style="background: #f0f0f0; padding: 10px; border-radius: 4px;">
+${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    resultDiv.innerHTML = `
+                        <div class="status error">
+                            ⏱️ TIMEOUT DETECTADO (El endpoint se cuelga después de 3 segundos)<br>
+                            <strong>El problema está en:</strong> /api/credenciales/validar-nfc
+                        </div>
+                    `;
+                    log('⚠️⚠️⚠️ ENDPOINT SE CUELGA - Revisar CredencialController::validarNfc', 'error');
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ ${error.message}</div>`;
+                }
+            }
+        }
+
+        async function testDatabase() {
+            const resultDiv = document.getElementById('test-db-result');
+            resultDiv.innerHTML = '<div class="status pending">🔄 Testeando DB...</div>';
+            
+            try {
+                log('Verificando base de datos...', 'info');
+                
+                const response = await fetch('/test-nfc-debug.php?uid=A1:B2:C3:D4:E5:01', {
+                    signal: AbortSignal.timeout(5000)
+                });
+                const text = await response.text();
+                
+                resultDiv.innerHTML = `
+                    <div class="status ok">✅ Database respondiendo</div>
+                    <pre class="log" style="max-height: 300px;">
+${text}</pre>
+                `;
+                log('✅ Database OK', 'success');
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ ${error.message}</div>`;
+                log(`❌ Error DB: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
