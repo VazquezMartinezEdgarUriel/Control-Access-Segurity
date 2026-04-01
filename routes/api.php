@@ -9,6 +9,22 @@ use App\Http\Controllers\AccesoVehicularController;
 use App\Http\Controllers\HorarioAccesoController;
 use App\Http\Controllers\VisitanteController;
 use App\Http\Controllers\DispositivoMovilController;
+use App\Http\Controllers\SolicitudVisitanteController;
+use App\Http\Controllers\AlertaController;
+
+// ==========================================
+// ALERTAS
+// ==========================================
+Route::get('alertas', [AlertaController::class, 'index']);
+Route::get('alertas/no-atendidas', [AlertaController::class, 'noAtendidas']);
+Route::get('alertas/estadisticas', [AlertaController::class, 'estadisticas']);
+Route::get('alertas/{id}', [AlertaController::class, 'show']);
+Route::post('alertas', [AlertaController::class, 'store']);
+Route::post('alertas/{id}/atender', [AlertaController::class, 'atender']);
+Route::delete('alertas/{id}', [AlertaController::class, 'destroy']);
+Route::get('alertas/usuario/{usuarioId}', [AlertaController::class, 'porUsuario']);
+Route::get('alertas/tipo/{tipoId}', [AlertaController::class, 'porTipo']);
+Route::get('alertas/fecha/{fechaInicio}/{fechaFin}', [AlertaController::class, 'porFecha']);
 
 // ==========================================
 // USUARIOS
@@ -74,3 +90,15 @@ Route::patch('horarios/{id}/toggle', [HorarioAccesoController::class, 'toggle'])
 // VISITANTES
 // ==========================================
 Route::apiResource('visitantes', VisitanteController::class);
+
+// ==========================================
+// SOLICITUDES DE VISITANTES
+// ==========================================
+Route::post('solicitud-visitante/crear', [SolicitudVisitanteController::class, 'crearSolicitud']);
+Route::get('solicitudes-visitante/pendientes', [SolicitudVisitanteController::class, 'obtenerSolicitudesPendientes']);
+Route::get('solicitudes-visitante', [SolicitudVisitanteController::class, 'obtenerSolicitudes']);
+Route::get('solicitudes-visitante/{id}', [SolicitudVisitanteController::class, 'obtenerSolicitud']);
+Route::post('solicitudes-visitante/{id}/aprobar', [SolicitudVisitanteController::class, 'aprobarSolicitud']);
+Route::post('solicitudes-visitante/{id}/negar', [SolicitudVisitanteController::class, 'negarSolicitud']);
+Route::get('solicitudes-visitante/estadisticas/general', [SolicitudVisitanteController::class, 'obtenerEstadisticas']);
+

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AccesoPeatonal;
 use App\Models\Credencial;
+use App\Models\Alerta;
 use Illuminate\Http\Request;
 
 class AccesoPeatonalController extends Controller
@@ -31,6 +32,13 @@ class AccesoPeatonalController extends Controller
         $credencial = Credencial::where('uid_nfc', $validated['uid_nfc'])->first();
         
         if (!$credencial) {
+            // Crear alerta de acceso denegado
+            Alerta::create([
+                'id_tipo_alerta' => 1,
+                'descripcion' => "Intento de acceso peatonal denegado: Credencial no registrada ($validated[uid_nfc])",
+                'fecha_hora' => now()
+            ]);
+
             return response()->json(['resultado' => 'denegado', 'motivo' => 'Credencial no registrada'], 403);
         }
 

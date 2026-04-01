@@ -22,6 +22,7 @@ let isPolling = true;         // Siempre activo
 let pollTimer = null;
 
 const POLL_INTERVAL = 300;    // Reducido a 300ms (era 800ms)
+const SCRIPT_PATH = path.join(__dirname, 'read-nfc.ps1');
 
 /**
  * Lee el UID de la tarjeta NFC usando el script PowerShell

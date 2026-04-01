@@ -227,6 +227,15 @@ tr:hover {
     background: #f9fafb;
 }
 
+.acceso-clickable {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.acceso-clickable:hover {
+    background: var(--accent-blue) !important;
+    opacity: 0.96;
+}
+
 .table-empty {
     text-align: center;
     padding: 40px;

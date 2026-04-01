@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Solicitudes de Visitantes</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+            --text-muted: #6c757d;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card.pending {
+            border-left-color: var(--warning);
+        }
+
+        .stat-card.approved {
+            border-left-color: var(--success);
+        }
+
+        .stat-card.denied {
+            border-left-color: var(--danger);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-card.pending .stat-number {
+            color: var(--warning);
+        }
+
+        .stat-card.approved .stat-number {
+            color: var(--success);
+        }
+
+        .stat-card.denied .stat-number {
+            color: var(--danger);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .filters button {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .filters button:hover {
+            background: #003d82;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.denied {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            color: var(--dark);
+            margin: 0;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-section h3 {
+            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .info-item {
+            background: var(--light);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .btn-approve {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #218838;
+        }
+
+        .btn-deny {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-deny:hover {
+            background: #c82333;
+        }
+
+        .btn-cancel {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-cancel:hover {
+            background: #e9ecef;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-view {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #138496;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: var(--primary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0, 86, 179, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Gestión de Solicitudes de Visitantes</h1>
+
+        <div class="alert success" id="alertSuccess">
+            <strong>✅</strong> <span id="successMessage"></span>
+        </div>
+
+        <div class="alert error" id="alertError">
+            <strong>⚠️</strong> <span id="errorMessage"></span>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card pending">
+                <div class="stat-number" id="statPendientes">0</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+            <div class="stat-card approved">
+                <div class="stat-number" id="statAprobadas">0</div>
+                <div class="stat-label">Aprobadas</div>
+            </div>
+            <div class="stat-card denied">
+                <div class="stat-number" id="statDenegadas">0</div>
+                <div class="stat-label">Denegadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters">
+            <select id="filtroEstado">
+                <option value="">Todos los estados</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="aprobada">Aprobadas</option>
+                <option value="denegada">Denegadas</option>
+            </select>
+            <input type="text" id="filtroBusqueda" placeholder="Buscar por nombre o email...">
+            <button onclick="cargarSolicitudes()">🔍 Filtrar</button>
+        </div>
+
+        <!-- Tabla de solicitudes -->
+        <div class="table-container">
+            <div class="loading" id="loading">
+                <span class="spinner"></span>Cargando...
+            </div>
+            <table id="tablaSolicitudes">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Solicitante</th>
+                        <th>Visitante</th>
+                        <th>Fecha Ingreso</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="6" class="no-data">Cargando solicitudes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de detalle y acción -->
+    <div class="modal" id="modalSolicitud">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalle de Solicitud</h2>
+                <button class="close-btn" onclick="cerrarModal()">&times;</button>
+            </div>
+
+            <!-- Datos de la solicitud -->
+            <div class="info-section">
+                <h3>👤 Datos del Solicitante</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Nombre Completo</div>
+                        <div class="info-value" id="infoSolicitante"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="infoEmail"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Teléfono</div>
+                        <div class="info-value" id="infoTelefono"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Fecha Solicitud</div>
+                        <div class="info-value" id="infoFechaSolicitud"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>👥 Datos del Visitante</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Nombre Completo</div>
+                        <div class="info-value" id="infoVisitante"></div>
+                    </div>
+                    <div class="info-item" style="grid-column: span 2;">
+                        <div class="info-label">Motivo</div>
+                        <div class="info-value" id="infoMotivo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>📅 Horario de Acceso</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Fecha</div>
+                        <div class="info-value" id="infoFecha"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Hora Inicio</div>
+                        <div class="info-value" id="infoHoraInicio"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Hora Fin</div>
+                        <div class="info-value" id="infoHoraFin"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value" id="infoEstado"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de acción (solo si está pendiente) -->
+            <div id="seccionAccion" style="display: none;">
+                <div class="form-group">
+                    <label>Motivo de Denegación (si es necesario):</label>
+                    <textarea id="motivoDenegacion" placeholder="Escribe el motivo si deseas denegar la solicitud..."></textarea>
+                </div>
+            </div>
+
+            <!-- Sección de respuesta (si ya fue procesada) -->
+            <div id="seccionRespuesta" style="display: none;">
+                <div class="info-section">
+                    <h3>📋 Respuesta del Administrador</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Procesado por</div>
+                            <div class="info-value" id="infoAdmin"></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Fecha de Respuesta</div>
+                            <div class="info-value" id="infoFechaRespuesta"></div>
+                        </div>
+                    </div>
+                    <div class="info-item" style="margin-top: 10px;">
+                        <div class="info-label">Motivo de Denegación</div>
+                        <div class="info-value" id="infoMotivoDenegacion">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="modal-actions" id="accionesSolicitud">
+                <button class="btn btn-approve" onclick="aprobarSolicitud()">✅ Aprobar</button>
+                <button class="btn btn-deny" onclick="mostrarOpcionesDenegacion()">❌ Denegar</button>
+                <button class="btn btn-cancel" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let solicitudActual = null;
+
+        // Cargar solicitudes al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarSolicitudes();
+            cargarEstadisticas();
+            // Recargar cada 30 segundos
+            setInterval(() => {
+                cargarSolicitudes();
+                cargarEstadisticas();
+            }, 30000);
+        });
+
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch('/api/solicitudes-visitante/estadisticas/general');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statPendientes').textContent = data.estadisticas.pendientes;
+                    document.getElementById('statAprobadas').textContent = data.estadisticas.aprobadas;
+                    document.getElementById('statDenegadas').textContent = data.estadisticas.denegadas;
+                    document.getElementById('statTotal').textContent = data.estadisticas.total;
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        async function cargarSolicitudes() {
+            const loading = document.getElementById('loading');
+            const tbody = document.querySelector('#tablaSolicitudes tbody');
+            
+            loading.style.display = 'block';
+
+            try {
+                const estado = document.getElementById('filtroEstado').value;
+                const busqueda = document.getElementById('filtroBusqueda').value;
+
+                let url = '/api/solicitudes-visitante';
+                if (estado) url += `?estado=${estado}`;
+                if (busqueda) url += `${estado ? '&' : '?'}buscar=${busqueda}`;
+
+                const response = await fetch(url);
+                const result = await response.json();
+
+                loading.style.display = 'none';
+
+                if (result.success) {
+                    const solicitudes = result.data.data || [];
+                    
+                    if (solicitudes.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="no-data">No hay solicitudes</td></tr>';
+                    } else {
+                        tbody.innerHTML = solicitudes.map(s => `
+                            <tr>
+                                <td>#${s.id_solicitud}</td>
+                                <td>
+                                    <strong>${s.solicitante}</strong><br>
+                                    <small style="color: #666;">${s.email}</small>
+                                </td>
+                                <td>${s.visitante}</td>
+                                <td>${s.fecha_ingreso}</td>
+                                <td>
+                                    <span class="badge ${s.estado.toLowerCase()}">${s.estado}</span>
+                                </td>
+                                <td>
+                                    <button class="btn-sm btn-view" onclick="verDetalles(${s.id_solicitud})">
+                                        👁️ Ver
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('Error cargando solicitudes:', error);
+            }
+        }
+
+        async function verDetalles(id) {
+            try {
+                const response = await fetch(`/api/solicitudes-visitante/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const s = result.solicitud;
+                    solicitudActual = s;
+
+                    document.getElementById('infoSolicitante').textContent = s.solicitante;
+                    document.getElementById('infoEmail').textContent = s.email;
+                    document.getElementById('infoTelefono').textContent = s.telefono || '-';
+                    document.getElementById('infoFechaSolicitud').textContent = s.fecha_solicitud;
+                    document.getElementById('infoVisitante').textContent = s.visitante;
+                    document.getElementById('infoMotivo').textContent = s.motivo;
+                    document.getElementById('infoFecha').textContent = s.fecha_ingreso;
+                    document.getElementById('infoHoraInicio').textContent = s.hora_inicio;
+                    document.getElementById('infoHoraFin').textContent = s.hora_fin;
+                    document.getElementById('infoEstado').innerHTML = `<span class="badge ${s.estado.toLowerCase()}">${s.estado}</span>`;
+
+                    const seccionAccion = document.getElementById('seccionAccion');
+                    const seccionRespuesta = document.getElementById('seccionRespuesta');
+                    const accionesSolicitud = document.getElementById('accionesSolicitud');
+
+                    if (s.estado === 'Pendiente') {
+                        seccionAccion.style.display = 'block';
+                        seccionRespuesta.style.display = 'none';
+                        accionesSolicitud.style.display = 'flex';
+                    } else {
+                        seccionAccion.style.display = 'none';
+                        seccionRespuesta.style.display = 'block';
+                        accionesSolicitud.innerHTML = '<button class="btn btn-cancel" onclick="cerrarModal()">Cerrar</button>';
+                        
+                        if (s.admin_responsable) {
+                            document.getElementById('infoAdmin').textContent = s.admin_responsable;
+                        }
+                        if (s.fecha_respuesta) {
+                            document.getElementById('infoFechaRespuesta').textContent = s.fecha_respuesta;
+                        }
+                        if (s.motivo_denegacion) {
+                            document.getElementById('infoMotivoDenegacion').textContent = s.motivo_denegacion;
+                        }
+                    }
+
+                    document.getElementById('modalSolicitud').classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error cargando detalles:', error);
+                mostrarError('Error cargando detalles de la solicitud');
+            }
+        }
+
+        async function aprobarSolicitud() {
+            if (!solicitudActual) return;
+
+            try {
+                const response = await fetch(`/api/solicitudes-visitante/${solicitudActual.id_solicitud}/aprobar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    mostrarExito('Solicitud aprobada correctamente');
+                    cerrarModal();
+                    cargarSolicitudes();
+                    cargarEstadisticas();
+                } else {
+                    mostrarError(result.error || 'Error al aprobar solicitud');
+                }
+            } catch (error) {
+                mostrarError('Error: ' + error.message);
+            }
+        }
+
+        function mostrarOpcionesDenegacion() {
+            const accionesSolicitud = document.getElementById('accionesSolicitud');
+            accionesSolicitud.innerHTML = `
+                <button class="btn btn-deny" onclick="confirmarDenegacion()">Confirmar Negación</button>
+                <button class="btn btn-cancel" onclick="verDetalles(${solicitudActual.id_solicitud})">Cancelar</button>
+            `;
+        }
+
+        async function confirmarDenegacion() {
+            if (!solicitudActual) return;
+
+            const motivo = document.getElementById('motivoDenegacion').value.trim();
+            if (!motivo) {
+                mostrarError('Debes escribir un motivo para denegar la solicitud');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/solicitudes-visitante/${solicitudActual.id_solicitud}/negar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    body: JSON.stringify({ motivo_denegacion: motivo })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    mostrarExito('Solicitud denegada correctamente');
+                    cerrarModal();
+                    cargarSolicitudes();
+                    cargarEstadisticas();
+                } else {
+                    mostrarError(result.error || 'Error al denegar solicitud');
+                }
+            } catch (error) {
+                mostrarError('Error: ' + error.message);
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalSolicitud').classList.remove('show');
+            document.getElementById('motivoDenegacion').value = '';
+            solicitudActual = null;
+        }
+
+        function mostrarExito(mensaje) {
+            const alert = document.getElementById('alertSuccess');
+            document.getElementById('successMessage').textContent = mensaje;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 4000);
+        }
+
+        function mostrarError(mensaje) {
+            const alert = document.getElementById('alertError');
+            document.getElementById('errorMessage').textContent = mensaje;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 4000);
+        }
+
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modalSolicitud').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -49,7 +49,7 @@ function showAlert(message, type = 'success') {
     alertDiv.textContent = message;
     document.body.appendChild(alertDiv);
     
-    setTimeout(() => alertDiv.remove(), 3000);
+    setTimeout(() => alertDiv.remove(), 4000);
 }
 
 /**

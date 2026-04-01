@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Credencial;
+use App\Models\Alerta;
 use Illuminate\Http\Request;
 
 class CredencialController extends Controller
@@ -79,6 +80,13 @@ class CredencialController extends Controller
             ->first();
 
         if (!$credencial) {
+            // Crear alerta de tarjeta no registrada
+            Alerta::create([
+                'id_tipo_alerta' => 1,  // Credencial no registrada
+                'descripcion' => "Intento de validación: Tarjeta NFC no registrada ($request->uid_nfc)",
+                'fecha_hora' => now()
+            ]);
+
             return response()->json([
                 'validacion' => 'denegado',
                 'mensaje' => 'Tarjeta no registrada en el sistema',
@@ -88,6 +96,14 @@ class CredencialController extends Controller
         }
 
         if (!$credencial->activa) {
+            // Crear alerta de credencial desactivada
+            Alerta::create([
+                'id_tipo_alerta' => 2,  // Credencial desactivada
+                'descripcion' => "Intento de validación: Credencial desactivada del usuario " . ($credencial->usuario?->persona?->nombre_completo ?? 'Desconocido'),
+                'id_usuario' => $credencial->id_usuario,
+                'fecha_hora' => now()
+            ]);
+
             return response()->json([
                 'validacion' => 'denegado',
                 'mensaje' => 'Credencial desactivada',
@@ -98,10 +114,26 @@ class CredencialController extends Controller
         }
 
         if ($credencial->fecha_expiracion && $credencial->fecha_expiracion->isPast()) {
+            // Crear alerta de credencial expirada
+            Alerta::create([
+                'id_tipo_alerta' => 3,  // Credencial expirada
+                'descripcion' => "Intento de validación: Credencial expirada el " . $credencial->fecha_expiracion->format('d/m/Y') . " - Usuario: " . ($credencial->usuario?->persona?->nombre_completo ?? 'Desconocido'),
+                'id_usuario' => $credencial->id_usuario,
+                'fecha_hora' => now()
+            ]);
+
             return response()->json([
                 'validacion' => 'denegado',
                 'mensaje' => 'Credencial expirada (venció el ' . $credencial->fecha_expiracion->format('d/m/Y') . ')',
                 'uid_nfc' => $request->uid_nfc,
+            // Crear alerta de usuario inactivo
+            Alerta::create([
+                'id_tipo_alerta' => 4,  // Usuario inactivo
+                'descripcion' => "Intento de validación: Usuario inactivo - " . ($usuario?->persona?->nombre_completo ?? 'Desconocido'),
+                'id_usuario' => $usuario?->id_usuario,
+                'fecha_hora' => now()
+            ]);
+
                 'usuario' => $credencial->usuario?->persona?->nombre_completo,
                 'fecha_expiracion' => $credencial->fecha_expiracion->toDateString(),
                 'timestamp' => now()->toISOString()
@@ -130,6 +162,16 @@ class CredencialController extends Controller
         if ($vigencia) {
             $vigenciaInfo = [
                 'inicio' => $vigencia->vigencia_inicio,
+        // Si la vigencia expiró, crear una alerta
+        if ($vigenciaExpirada) {
+            Alerta::create([
+                'id_tipo_alerta' => 5,  // Vigencia expirada
+                'descripcion' => "Alerta: Vigencia expirada del usuario " . ($usuario->persona?->nombre_completo ?? 'Desconocido') . " expiró el " . $vigencia->vigencia_fin->format('d/m/Y'),
+                'id_usuario' => $usuario->id_usuario,
+                'fecha_hora' => now()
+            ]);
+        }
+
                 'fin' => $vigencia->vigencia_fin,
                 'activa' => $vigencia->activo
             ];
